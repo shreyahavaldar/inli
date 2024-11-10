@@ -1,0 +1,193 @@
+normbank_prompt = """You are an expert in English reading comprehension. You also understand social situations well.
+Your task is, given a setting, behavior, and details about a socially taboo situation, construct a passage that depicts the situation being interpreted as taboo in a real-life setting.
+Then, extract a logical implicature about why the behavior described in the passage is seen as taboo.
+An "implicature" is defined as a statement that can be inferred from the passage, but is not explicitly stated in the passage.
+There are many possible ways to do this task. Here are a few examples, with explanations.
+
+[example]
+Setting: tattoo studio
+Behavior: get a tattoo of something related to drugs
+Details: [PERSON]'s role is 'monk'
+Passage: The usually vibrant tattoo parlor was silent as Brother Thomas, a visiting monk known for his serenity, requested a tattoo of a marijuana leaf on his bicep.
+Implicature: The people in the tattoo parlor were surprised that a monk would be getting drug-related tattoos.
+Justification: This behavior is taboo because monks are traditionally devoted to a pure and spiritual life, so a monk getting a tattoo related to drugs is surprising. The passage states that the usually vibrant tattoo parlor was silent, which clearly implies the people in the tattoo parlor were surprised.
+
+[example]
+Setting: cafe
+Behavior: talk about sex
+Details: [PERSON]'s role is 'barista'
+Passage: Overhearing snippets of a hushed conversation, the barista couldn't help but raise an eyebrow as two customers openly discussed their sexual preferences at a corner table.
+Implicature: The barista felt it was inappropriate for the customers to discuss their intimate preferences in a public place.
+Justification: This behavior is taboo because a coffee shop is a public place, and discussing personal sexual preferences in a public place is inappropriate. The passage states that the barista raised an eyebrow, which clearly implies the barista felt the customers' conversation was inappropriate.
+
+[example]
+Setting: cemetery
+Behavior: picking flowers
+Details: [PERSON]'s role is 'cemetery salesperson'
+Passage: The cemetery salesperson watched in surprise as a young woman knelt beside a weathered headstone, carefully plucking vibrant lilies from the surrounding flowerbeds.
+Implicature: The cemetery salesperson thought it was disrespectful for the young woman to pick flowers.
+Justification: This behavior is taboo because a cemetery is a solemn place of respect and mourning, so picking flowers at a cemetery is disrespectful. The passage states that the cemetery salesperson watched in surprise, which clearly implies the cemetery salesperson thought the young woman's flower picking was disrespectful.
+
+[example]
+Setting: arena
+Behavior: drink beer
+Details: [PERSON]'s role is 'player'
+Passage: Despite the raucous cheers echoing through the arena, a hush fell over the player's bench as the coach spotted pitcher Harris cracking open a beer can moments after the inning ended.
+Implicature: Harris's teammates knew he was acting unprofessional by drinking beer during his game.
+Justification: This behavior is taboo because players in the middle of their sporting events never drink alcohol, so a pitcher drinking beer during his baseball game is unprofessional. The passage states that a hush fell over the player's bench, clearly implying that Harris's teammates knew he was acting unprofessional.
+
+[example]
+Setting: grocery store
+Behavior: bring your own bags
+Details: [PERSON]'s role is 'meat clerk'
+Passage: The meat clerk scowled as Mrs. Johnson unloaded her groceries onto the counter, gesturing towards her floral patterned tote bag for the raw chicken.
+Implicature: The meat clerk thought it was unhygienic that Mrs. Johnson brought her own bag for raw meat.
+Justification: This behavior is taboo because raw meat is typically placed in a store-provided bag for hygiene reasons, so Mrs. Johnson bringing her own bag for raw chicken is unhygienic. The passage states the meat clerk scowled, clearly implying he thought putting raw chicken in a tote bag was unhygienic.
+
+[your task]
+Using the above examples as a reference, your task is as follows:
+Given a setting, behavior, and details about a socially taboo situation, construct a passage that depicts the situation being interpreted as taboo in a real-life setting.
+Then, extract a logical implicature about why the behavior described in the passage is seen as taboo. Make sure the implicature is short and concise. Provide a justification for how one would infer the implicature.
+Ensure the implicature can be clearly inferred from the passage. Your response should be formatted using "Passage: ", "Implicature: ", and "Justification: "
+Setting: {}
+Behavior: {}
+Details: {}
+"""
+
+socialchem_prompt = """You are an expert in English reading comprehension. You also understand social situations well.
+Your task is, given a first-person social situation, construct a third-person passage that depicts the situation in a real-life context.
+Then, extract a concise implicature from the passage about a given social rule-of-thumb which is reflected in the passage.
+An "implicature" is defined as a statement that can be inferred from the passage, but is not explicitly stated in the passage.
+There are many possible ways to do this task. Here are a few examples, with explanations.
+
+[example]
+Situation: losing trust in my friend
+Rule-of-thumb: It's bad to do something that causes other people to lose trust in you.
+Passage: Ever since Antonia spilled Emma's secret to her classmates, a nagging doubt has been growing in Emma's mind, making it hard to trust Antonia completely.
+Implicature: It was bad for Antonia's friendship with Emma to spill Emma's secret.
+Justification: The implicature follows from the phrase "making it hard for her to trust Antonia," which clearly implies that Antonia's friendship with Emma was harmed due to Antonia spilling Emma's secret.
+
+[example]
+Situation: saying no to being a bridesmaid at a friend's wedding
+Rule-of-thumb: People are expected to participate in the big events in their friends' lives if asked.
+Passage: Preparing herself for Sarah's disappointment', Sabrina had to tell Sarah that she wouldn't be able to be a bridesmaid.
+Implicature: Sarah was expecting her friend Sabrina to be a bridesmaid in her wedding.
+Justification: The implicature follows from the phrase "preparing herself for Sarah's disappointment," which clearly implies that Sarah had expected Sabrina to say yes to being a bridesmaid.
+
+[example]
+Situation: telling my boyfriend I am bored and unhappy at my job
+Rule-of-thumb: Partners should listen to each other's issues
+Passage: Seeking support, Paul poured out his heart to his boyfriend Michael about feeling burnt out at work.
+Implicature: Paul expects that Michael will listen about his issues at work.
+Justification: The implicature follows from the phrase "seeking support," which clearly implies that Paul expected Michael to provide support and listen about his issues at work.
+
+[example]
+Situation: not wanting to be around my family
+Rule-of-thumb: It is okay to need space from family.
+Passage: Priya politely excused herself early from family dinner, knowing that her family would understand she needed some quiet time to recharge for the upcoming week.
+Implicature: Priya felt it was okay to leave her family and take time to herself.
+Justification: This implicature follows from the phrase "knowing her family would understand," which clearly implies that Priya felt it was okay to need space from her family.
+
+[example]
+Situation: washing my cat's bowls in the kitchen sink
+Rule-of-thumb: It's good to keep things clean.
+Passage: Jasmine decided to wash her cat's bowls in the kitchen sink to avoid any lingering smells that might dissuade her cat from eating.
+Implicature: Jasmine knows that having clean bowls is good for her cat's health and appetite.
+Justification: The implicature follows from the phrase "to avoid any lingering smells," which clearly implies that Jasmine knows having clean bowls without lingering smells is good for her cat.
+
+[your task]
+Using the above examples as a reference, your task is as follows:
+Given a social situation, construct a passage involving the situation in a real-life context. Then, extract a concise implicature from the passage and the given social rule-of-thumb which is reflected in the passage.
+Ensure there is a phrase in the passage from which the implicature follows. Make sure the implicature can be clearly inferred from the passage, but is not explicitly stated in the passage. Provide a justification for how one would infer the implicature.
+Your response should be three lines, beginning with "Passage: ", "Implicature: ", and "Justification: "
+Situation: {}
+Rule-of-thumb: {}
+"""
+
+
+yesno_extraction_prompt = """"You are an expert in English reading comprehension.
+The following passages consist of a conversation between two people, containing a question and a response. The response to the question is an indirect answer.
+Your task is to extract the implicature from the response, taking into account that the response means yes or no.
+An "implicature" is defined as a statement that can be inferred from the passage, but is not explicitly stated in the passage.
+Here are a few examples of this, with explanations.
+
+[example]
+Extract the implicature from the following passage, given that the response means no.
+Passage: Adam says, "Are you taking the other's pokémon?!" Chris responds, "Taking them?"
+Implicature: Chris is not taking someone else's Pokemon.
+Justification: Chris responding "no" to Adam's question "Are you taking the other's pokémon?" implies Chris is not taking someone else's pokemon.
+
+[example]
+Extract the implicature from the following passage, given that the response means no.
+Passage: Stephanie says, "Do you suppose I was dropped on my head?" Zane responds, "I hope not."
+Implicature: Stephanie was not dropped on her head.
+Justification: Zane responding "no" to Stephanie's question "Do you suppose I was dropped on my head?" implies that Stephanie was not dropped on her head.
+
+[example]
+Extract the implicature from the following passage, given that the response means no.
+Passage: Melissa says, "Do you like my new outfit?" Jeanette responds, "You shouldn’t be allowed to buy clothes."
+Implicature: Jeanette strongly dislikes Melissa's new outfit.
+Justification: Jeanette responding "no" to Melissa's question "Do you like my new outfit?" implies that she does not like Melissa's new outfit.
+
+[example]
+Extract the implicature from the following passage, given that the response means no.
+Passage: Glory says, "Is he fat?" Elisa responds, "He is skinny enough to jump through a keyhole."
+Implicature: The person in question is not fat.
+Justification: Elisa responding "no" to Glory's question "Is he fat?" implies the person in question is not fat.
+
+[example]
+Extract the implicature from the following passage, given that the response means yes.
+Passage: Olivia says, "Do you think I should finish it fast?" Ken responds, "Time is ticking away."
+Implicature: Ken is urging Olivia to finish it quickly.
+Justification: Ken responding "yes" to Olivia's question "Do you think I should finish it fast?" implies that Ken is urging Olivia to finish it quickly.
+
+[your task]
+Using the above examples as a reference, your task is as follows:
+Extract the implicature from the following passage, given that the response means {}.
+Your response should be two lines, beginning with "Implicature: ", and "Justification: "
+Passage: {}
+"""
+
+
+indirect_extraction_prompt = """You are an expert in English reading comprehension.
+The following passages consist of a conversation between two people, containing a question and a response. The response to the question is an indirect answer.
+Your task is to extract the implicature from the response, taking into account that the response means yes or no.
+An "implicature" is defined as a statement that can be inferred from the passage, but is not explicitly stated in the passage.
+Here are a few examples of this, with explanations.
+
+[example]
+Extract the implicature from the following passage, given that the response means yes.
+Passage: Sunny has just traveled from a different city to meet Neil. Neil asks, "Are you employed?" Sunny responds, "I'm a veterinary technician."
+Implicature: Sunny is employed.
+Justification: Sunny responding "yes" to Neil's question "Are you employed?" implies that Sunny is employed.
+
+[example]
+Extract the implicature from the following passage, given that the response means yes.
+Passage: Jeffrey has just moved into a neighbourhood and meets his/her new neighbour Lyle. Lyle says, "Have you lived in this area long?" Jeffrey responds, "Several of my neighbors remember me in diapers."
+Implicature: Jeffrey has lived in the area for a long time.
+Justification: Jeffrey responding "yes" to Lyle's question "Have you lived in this area long?" implies that Jeffrey has lived in the area for a long time.
+
+[example]
+Extract the implicature from the following passage, given that the response means no.
+Passage: Sal wants to know what activities Kat likes to do during weekends. Sal says, "Are you going to the high school football game tonight?" Kat responds, "I'd rather do anything else."
+Implicature: Kat is not going to the high school football game tonight.
+Justification: Kat responding "no" to Sal's question "Are you going to the high school football game tonight?" implies that Kat is not going to the high school football game tonight.
+
+[example]
+Extract the implicature from the following passage, given that the response means yes.
+Passage: Johanna has just told Jon that she is considering switching her job. Jon says, "Do you usually have to work late?" Johanna responds, "Often I find myself the last one at work."
+Implicature: Johanna usually has to work late.
+Justification: Johanna responding "yes" to Jon's question "Do you usually have to work late?" implies that Jon usually has to work late.
+
+[example]
+Extract the implicature from the following passage, given that the response means no.
+Passage: David wants to know about Hilary's music preferences. David says, "Do you listen to classical music?" Hilary responds, "I'm not a fan"
+Implicature: Hilary does not listen to classical music.
+Justification: Hilary responding "no" to David's question "Do you listen to classical music?" implies that David does not listen to classical music.
+
+[your task]
+Using the above examples as a reference, your task is as follows:
+Extract the implicature from the following passage, given that the response means {}.
+Your response should be two lines, beginning with "Implicature: ", and "Justification: "
+Passage: {}
+"""

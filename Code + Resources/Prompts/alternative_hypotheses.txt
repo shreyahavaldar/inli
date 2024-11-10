@@ -1,0 +1,353 @@
+prefix = """You are an expert in English reading comprehension. Given a passage depicting a {}, there are four possible types of statements that can be extracted from the passage.
+These four statements are: an implied statement, an explicit statement, a neutral statement, and a contradictory statement.
+An "implied statement" is defined as a statement that can be inferred from the passage, but is not explicitly stated in the passage.
+An "explicit statement" is defined as a statement that is entailed in the passage, and can be proven true using the passage as support.
+A "neutral statement" is defined as a statement that is neither entailed nor contradicted by the passage. A neutral statement can be true given the passage, but can also be false given the passage.
+A "contradictory statement" is defined as a statement that can be directly refuted and proven false using the passage as support.
+
+Given a passage and an implied statement, your task is to generate explicit, neutral, and contradictory statements, using the implied statement as a starting point.
+You may add, remove, and replace any necessary phrases from the implied statement, so that the generated statements are explicit, neutral, and contradictory with respect to the passage.
+Here are few example passages, the four statements corresponding to the passage, and justifications explaining each of the statements:
+"""
+
+normbank_prompt = prefix.format("social situation") + """
+[begin example]
+Passage: Overhearing snippets of a hushed conversation, the barista couldn't help but raise an eyebrow as two customers openly discussed their intimate preferences at a corner table.
+Implied statement: The barista thought it was inappropriate for the customers to discuss their intimate preferences in a public place.
+
+Explicit statement: The barista overheard the conversation of two customers discussing their intimate preferences in a public place.
+Justification: The implied statement was modified by replacing "thought it was inappropriate for the customers to discuss" with "overheard the conversation of two customers discussing." This change makes the statement explicit because the passage states that the barista overheard the conversation of the two customers.
+
+Neutral statement: The barista overheard the conversation of two customers sipping on lattes and discussing their intimate preferences.
+Justification: The implied statement was modified by replacing "thought it was inappropriate for the customers to discuss" with "sipping on lattes and discussing." This change makes the statement neutral because the passage does not mention what drinks the customers are having.
+
+Contradictory statement: The barista thought it was inappropriate for the customers to loudly discuss their intimate preferences in a public place.
+Justification: The implied statement was modified by adding the word "loudly." This change makes the statement contradictory because the passage states that the barista overheard snippets of a hushed conversation, not a loud conversation.
+[end example]
+
+[begin example]
+Passage: The usually vibrant tattoo parlor was silent as Brother Thomas, a visiting monk known for his serenity, requested a tattoo of a marijuana leaf on his bicep.
+Implied statement: The people in the tattoo parlor were surprised that a monk would be getting drug-related tattoos.
+
+Explicit statement: The people in the tattoo parlor were silent as a monk requested drug-related tattoos.
+Justification: The implied statement was modified by replacing "were surprised that a monk would be getting drug-related tattoos" with "were silent as a monk requested drug-related tattoos." This change makes the statement explicit because the passage clearly states that the people in the tattoo parlor were silent as Brother Thomas request a new tattoo.
+
+Neutral statement: The people in the tattoo parlor were surprised that a monk had lots of tattoos on his body.
+Justification: The implied statement was modified by replacing "would be getting drug-related tattoos" with "had lots of tattoos on his body." This change makes the statement neutral because the passage does not mention anything about whether Brother Thomas has tattoos on other parts of his body.
+
+Contradictory statement: The people in the tattoo parlor were unfazed that a monk would be getting drug-related tattoos.
+Justification: The implied statement was amodified by replacing "surprised" with "unfazed." This change makes the statement contradictory because the passage states the tattoo parlor was silent, indicating the people were surprised, not unfazed.
+[end example]
+
+[begin example]
+Passage: The cemetery salesperson watched in surprise as a young woman knelt beside the headstone, carefully plucking vibrant lilies from the surrounding flowerbeds.
+Implied statement: The cemetery salesperson thought it was disrespectful for the young woman to pick flowers.
+
+Explicit statement: The cemetery thought it was surprising for saw the young woman pick flowers.
+Justification: The implied statement was modified by replacing "disrespectful" with "surprising." This change makes the statement explicit because the passage states that the cemetery salesperson watched in surprise as the young woman picked flowers.
+
+Neutral statement: The cemetery salesperson thought it was surprising for the young woman to wear a dress.
+Justification: The implied statement was modified by replacing "disrespectful" with "surprising" and "pick flowers" to "wear a dress." This change makes the statement neutral because the passage does not mention anything about what the woman was wearing.
+
+Contradictory statement: The cemetery salesperson thought it was disrespectful for the young woman to plant flowers.
+Justification: The implied statement was modified by replacing "pick" with "plant." This change makes the statement contradictory because the passage states that the young woman picked flowers, not planted flowers.
+[end example]
+
+[begin example]
+Passage: Despite the raucous cheers echoing through the arena, a hush fell over the player's bench as the coach spotted veteran pitcher Harris cracking open a beer can moments after the inning ended.
+Implied statement: Harris's teammates knew he was acting unprofessional by drinking beer during his game.
+
+Explicit statement: Harris's teammates knew he was drinking beer during his game.
+Justification: The implied statement was modified by removing "acting unprofessional by." This change makes the statement explicit because the passage states that Harris cracked open a beer can moments after the inning ended.
+
+Neutral statement: Harris's teammates knew he was acting unprofessional by drinking beer to celebrate the team's lead.
+Justification: The implied statement was modified by replacing "during his game" with "to celebrate the team's lead." This change makes the statement neutral because the passage does not mention the score of the game.
+
+Contradictory statement: Harris's teammates knew he was acting unprofessional by drinking beer before his game.
+Justification: The implied statement was modified by replacing "during" with "before." This change makes the statement contradictory because the passage states Harris cracked open a beer can moments after the inning ended, not before the game.
+[end example]
+
+[begin example]
+Passage: The meat clerk scowled as Mrs. Johnson unloaded her groceries onto the counter, gesturing towards her floral patterned tote bag for the raw chicken.
+Implied statement: The meat clerk thought it was unhygienic that Mrs. Johnson brought her own bag for raw chicken.
+
+Explicit statement: The meat clerk scowled when he saw that Mrs. Johnson brought her own bag for raw chicken.
+Justification: The implied statement was modified by replacing "thought it was unhygienic" with "scowled when he saw." This change makes the statement explicit because the passage states that the meat clerk scowled and gestured towards Mrs. Johnson's tote bag.
+
+Neutral statement: The meat clerk scowled when he saw that Mrs. Johnson was buying a large amount of raw chicken.
+Justification: The implied statement was modified by replacing "thought it was unhygienic" with "scowled when he saw" and "brought her own tote bag for" to "buying a large amount of." This change makes the statement neutral because the passage does not mention how much raw chicken Mrs. Johnson was buying.
+
+Contradictory statement: The meat clerk though it was unhygienic that Mrs. Johnson forgot her own bag for raw chicken.
+Justification: The implied statement was modified by replacing "brought" with "forgot." This change makes the statement contradictory because the passage states that Mrs. Johnson brought her own bag, not forgot one.
+[end example]
+
+[your task]
+Using the above examples as a reference, your task is as follows:
+Given a passage and an implied statement, please generate an explicit statement, a neutral statement, and a contradictory statement, using the implied statement as a starting point.
+You may add, remove, and replace any necessary phrases. Similar to the above examples, ensure the generated statements are indeed explicit, neutral, and contradictory with respect to the passage.
+For an explicit statement, the justification must include what part of the passage contains the explicit statement.
+For a neutral statement, the justification must include why the neutral statement can be both true or false with respect to the passage.
+For a contradictory statement, the justification must include what part of the passage is directly contradicted by the contradictory statement.
+Be creative in this task. For example, the contradictory statement should not just be generated by replacing "inappropriate" with "appropriate."
+Your response should be six lines, beginning with "Explicit statement:", "Justification:", "Neutral statement:", "Justification:", "Contradictory statement:", and "Justification:".
+
+Passage: {}
+Implied statement: {}
+"""
+
+socialchem_prompt = prefix.format("social situation") + """
+[begin example]
+Passage: Preparing herself for Sarah's disappointment, Sabrina had to tell Sarah that she wouldn't be able to be a bridesmaid.
+Implied statement: Sarah was expecting Sabrina to be a bridesmaid in her wedding.
+
+Explicit statement: Sarah was disappointed when Sabrina told her she wouldn't be able to be a bridesmaid.
+Justification: The implied statement was modified by replacing "was expecting" with "was disappointed when Sabrina told her." This change makes the statement explicit because the passage states that Sabrina prepared herself for Sarah's disappointment.
+
+Neutral statement: Sarah was expecting Sabrina to attend her engagement party.
+Justification: The implied statement was modified by replacing "be a bridesmaid in her wedding" with "attend her engagement party." This change makes the statement neutral because the passage does not specify whether Sarah would be attending Sabrina's engagement party.
+
+Contradictory statement: Sarah was expecting Sabrina to say no to being a bridesmaid in her wedding.
+Justification: The implied statement was modified by replacing "to be" with "to say no to being." This change makes the statement contradictory because the passage implies that Sarah was indeed expecting Sabrina to be a bridesmaid, as Sabrina prepared herself for Sarah's disappointment.
+[end example]
+
+[begin example]
+Passage: Seeking support, Paul poured out his heart to his boyfriend Michael about feeling burnt out at work.
+Implied statement: Paul expects that Michael will listen about his issues at work.
+
+Explicit statement: Paul told Michael about feeling burnt out at work.
+Justification: The implied statement was modified by replacing "expects that Michael will listen about his issues" with "told Michael about feeling burnt out at work." This change makes the statement explicit because the passage states that Paul shared his feelings with Michael.
+
+Neutral statement: Paul expects that Michael will listen about his issues with their relationship.
+Justification: The implied statement was modified by replacing "his issues at work" with "his issues with their relationship." This change makes the statement neutral because the passage does not specify any issues related to their relationship.
+
+Contradictory statement: Paul does not expect that Michael will listen about his issues at work.
+Justification: The implied statement was modified by replacing "expects that Michael will listen" with "does not expect that Michael will listen." This change makes the statement contradictory because the passage indicates that Paul sought support from Michael, implying he expected Michael to listen.
+[end example]
+
+[begin example]
+Passage: Ever since Antonia spilled Emma's secret to her classmates, a nagging doubt has been growing in Emma's mind, making it hard to trust Antonia completely.
+Implied statement: It was bad for Antonia's friendship with Emma to spill Emma's secret.
+
+Explicit statement: Emma's trust in Antonia was affected after Antonia spilled Emma's secret.
+Justification: The implied statement was modified by replacing "it was bad for Antonia's friendship with Emma to spill" with "Emma's trust in Antonia was affected after Antonia spilled." This change makes the statement explicit because the passage states that Emma finds it hard to trust Antonia completely.
+
+Neutral statement: It was bad for Antonia's friendship with Emma to spill so many secrets.
+Justification: The implied statement was modified by replacing "Emma's secret" with "so many secrets." This change makes the statement neutral because the passage does not mention if Antonia spilled any secrets other than Emma's.
+
+Contradictory statement: It was acceptable for Antonia's friendship with Emma to spill Emma's secret.
+Justification: The implied statement was modified by replacing "bad" with "acceptable." This change makes the statement contradictory because the passage states that Emma's trust in Antonia was lost, making it not fine that Antonia spilled Emma's secret.
+[end example]
+
+[begin example]
+Passage: Priya politely excused herself early from family dinner, knowing that her family would understand she needed some quiet time to recharge for the upcoming week.
+Implied statement: Priya felt it was okay to leave her family and take time to herself.
+
+Explicit statement: Priya's family would understand she needed to take time to herself.
+Justification: The implied statement was modified by replacing "Priya felt it was okay to leave her family and" with "Priya's family would understand she needed to." This change makes the statement explicit because the passage states that Priya's family would understand her need for quiet time.
+
+Neutral statement: Priya felt it was okay to leave her family to prepare for a presentation at work.
+Justification: The implied statement was modified by replacing "take time to herself" to "prepare for a presentation at work." This change makes the statement neutral because the passage does not mention why Priya needed quiet time beyond recharging for the week.
+
+Contradictory statement: Priya felt it was okay to leave her family without explaining why.
+Justification: The implied statement was modified by replacing "take time to herself" with "without explaining why." This change makes the statement contradictory because the passage indicates Priya excused herself knowing her family would understand.
+[end example]
+
+[begin example]
+Passage: Jasmine decided to wash her cat's bowls in the kitchen sink to avoid any lingering smells that might dissuade her cat from eating.
+Implied statement: Jasmine knows that having clean bowls is good for her cat's health and appetite.
+
+Explicit statement: Jasmine washed her cat's bowls to avoid any lingering smells that might dissuade her cat from eating.
+Justification: The implied statement was modified by replacing "knows that having clean bowls is good for her cat's health and appetite" with the reason provided in the passage. This change makes the statement explicit because the passage states Jasmine washed the bowls to avoid smells that might dissuade her cat from eating.
+
+Neutral statement: Jasmine knows that having clean bowls is good for her cat's coat and overall appearance.
+Justification: The implied statement was modified by replacing "health and appetite" with "coat and overall appearance." This change makes the statement neutral because the passage does not mention anything about the cat's physical appearance.
+
+Contradictory statement: Jasmine knows that dirty bowls are good for her cat's health and appetite.
+Justification: The implied statement was modified by replacing "clean bowls" with "dirty bowls." This change makes the statement contradictory because the passage indicates Jasmine washed the bowls to avoid lingering smells, implying she believes clean bowls are better for her cat.
+[end example]
+
+[your task]
+Using the above examples as a reference, your task is as follows:
+Given a passage and an implied statement, please generate an explicit statement, a neutral statement, and a contradictory statement, using the implied statement as a starting point.
+You may add, remove, and replace any necessary phrases. Similar to the above examples, ensure the generated statements are indeed explicit, neutral, and contradictory with respect to the passage.
+For an explicit statement, the justification must include what part of the passage contains the explicit statement.
+For a neutral statement, the justification must include why the neutral statement can be both true or false with respect to the passage.
+For a contradictory statement, the justification must include what part of the passage is directly contradicted by the contradictory statement.
+Be creative in this task, while still ensuring the statements are indeed explicit, neutral, and contradictory.
+Your response should be six lines, beginning with "Explicit statement:", "Justification:", "Neutral statement:", "Justification:", "Contradictory statement:", and "Justification:".
+
+Passage: {}
+Implied statement: {}
+"""
+
+bigbench_prompt = prefix.format("conversation") + """
+[begin example]
+Passage: Adam says, "Are you taking the other's pokémon?!" Chris responds, "Taking them?"
+Implied statement: Chris is not taking someone else's pokemon.
+
+Explicit statement: Adam wants to know if Chris is taking someone else's pokémon.
+Justification: The implied statement was modified by adding "Adam wants to know if." This change makes the statement explicit because the passage states that Adam asks Chris if he is taking someone else's pokémon.
+
+Neutral statement: Chris is enjoying playing pokemon.
+Justification: The implied statement was modified by replacing "not taking someone else's pokemon" with "enjoying playing pokemon." This change makes the statement neutral because the passage does not mention anything about whether or not Chris is enjoying himself.
+
+Contradictory statement: Chris is taking someone else's pokémon.
+Justification: The implied statement was ablated by removing "not." This change makes the statement contradictory because the passage shows Chris questioning the accusation, implying he is not taking the pokémon.
+[end example]
+
+[begin example]
+Passage: Stephanie says, "Do you suppose I was dropped on my head?" Zane responds, "I hope not."
+Implied statement: Stephanie was not dropped on her head.
+
+Explicit statement: Zane hopes that Stephanie was not dropped on her head.
+Justification: The implied statement was modified by adding "Zane hopes that," which is explicitly stated in Zane's response, "I hope not."
+
+Neutral statement: Zane was not dropped on his head.
+Justification: The implied statement was modified by replacing "Stephanie" with "Zane." This change makes the statement neutral because the passage does not mention anything about whether or not Zane was dropped on his head.
+
+Contradictory statement: Stephanie was dropped on her head.
+Justification: The implied statement was ablated by removing "not." This change makes the statement contradictory because Zane's response, "I hope not," implies that he does not believe or hope that she was dropped on her head.
+[end example]
+
+[begin example]
+Passage: Melissa says, "Do you like my new outfit?" Jeanette responds, "You shouldn’t be allowed to buy clothes."
+Implied statement: Jeanette strongly dislikes Melissa's new outfit.
+
+Explicit statement: Jeanette thinks Melissa should not be allowed to buy clothes.
+Justification: The implied statement was modified by stating "Jeanette thinks," which is explicitly stated in Jeanette's response, "You shouldn’t be allowed to buy clothes."
+
+Neutral statement: Melissa likes her new outfit.
+Justification: The implied statement was modified by focusing on Melissa's opinion instead of Jeanette's. This change makes the statement neutral because the passage does not specify Melissa's feelings about her outfit, although her question implies she may like it.
+
+Contradictory statement: Jeanette loves Melissa's new outfit.
+Justification: The implied statement was ablated by replacing "strongly dislikes" with "loves." This change makes the statement contradictory because Jeanette's response, "You shouldn’t be allowed to buy clothes," clearly indicates strong disapproval of Melissa's new outfit.
+[end example]
+
+[begin example]
+Passage: Glory says, "Is he fat?" Elisa responds, "He is skinny enough to jump through a keyhole."
+Implied statement: The person in question is not fat.
+
+Explicit statement: Elisa says the person is skinny enough to jump through a keyhole.
+Justification: The implied statement was modified to directly reflect Elisa's response, "He is skinny enough to jump through a keyhole," which explicitly states that the person is not fat.
+
+Neutral statement: The person in question likes to exercise.
+Justification: The implied statement was modified to focus on a different aspect unrelated to weight. This change makes the statement neutral because the passage does not provide any information about the person's exercise habits, so it could be either true or false.
+
+Contradictory statement: The person in question is very fat.
+Justification: The implied statement was ablated by replacing "not fat" with "very fat." This change makes the statement contradictory because Elisa's response, "He is skinny enough to jump through a keyhole," clearly indicates that the person is not fat.
+[end example]
+
+[begin example]
+Passage: Olivia says, "Do you think I should finish it fast?" Ken responds, "Time is ticking away."
+Implied statement: Ken is urging Olivia to finish it quickly.
+
+Explicit statement: Ken points out that time is ticking away.
+Justification: The implied statement was modified to directly reflect Ken's response, "Time is ticking away," which implies urgency and the need to finish quickly.
+
+Neutral statement: Olivia is considering whether to finish it fast.
+Justification: The implied statement was modified to focus on Olivia's consideration rather than Ken's urging. This change makes the statement neutral because the passage indicates Olivia is thinking about finishing quickly, but does not provide a definitive stance on her decision.
+
+Contradictory statement: Ken thinks Olivia should take her time.
+Justification: The implied statement was ablated by replacing "finish it quickly" with "take her time." This change makes the statement contradictory because Ken's response, "Time is ticking away," suggests urgency and the need for Olivia to hurry, not take her time.
+[end example]
+
+[your task]
+Using the above examples as a reference, your task is as follows:
+Given a passage and an implied statement, please generate an explicit statement, a neutral statement, and a contradictory statement, using the implied statement as a starting point.
+You may add, remove, and replace any necessary phrases. Similar to the above examples, ensure the generated statements are indeed explicit, neutral, and contradictory with respect to the passage.
+For an explicit statement, the justification must include what part of the passage contains the explicit statement.
+For a neutral statement, the justification must include why the neutral statement can be both true or false with respect to the passage.
+For a contradictory statement, the justification must include what part of the passage is directly contradicted by the contradictory statement.
+Be creative in this task, while still ensuring the statements are indeed explicit, neutral, and contradictory.
+Your response should be six lines, beginning with "Explicit statement:", "Justification:", "Neutral statement:", "Justification:", "Contradictory statement:", and "Justification:".
+
+Passage: {}
+Implied statement: {}
+"""
+
+circa_prompt = prefix.format("conversation") + """
+[begin example]
+Passage: Sal wants to know what activities Kat likes to do during weekends. Sal says, "Are you going to the high school football game tonight?" Kat responds, "I'd rather do anything else."
+Implied statement: Kat is not going to the high school football game tonight.
+
+Explicit statement: Kat would rather do anything else than go to the high school football game tonight.
+Justification: The implied statement was modified to directly reflect Kat's response, "I'd rather do anything else," which explicitly indicates she is not interested in going to the football game.
+
+Neutral statement: Kat is not watching a movie tonight.
+Justification: The implied statement was modified by replacing "going to the high school football game" with "watching a movie." This change makes the statement neutral because the passage does not provide any information about Kat's interest in watching movies, so it could be either true or false.
+
+Contradictory statement: Kat is going to the high school football game tonight.
+Justification: The implied statement was modified by removing "not." This change makes the statement contradictory because Kat's response, "I'd rather do anything else," clearly indicates she does not want to go to the football game.
+[end example]
+
+[begin example]
+Passage: Johanna has just told Jon that she is considering switching her job. Jon says, "Do you usually have to work late?" Johanna responds, "Often I find myself the last one at work."
+Implied statement: Johanna usually has to work late.
+
+Explicit statement: Johanna often finds herself the last one at work.
+Justification: The implied statement was modified to directly reflect Johanna's response, "Often I find myself the last one at work," which explicitly indicates she usually has to work late.
+
+Neutral statement: Johanna is satisfied with her current job.
+Justification: The implied statement was modified by replacing "usually has to work late" with "is satisfied with her current job." This change makes the statement neutral because the passage does not provide any information about her satisfaction with her current job, so it could be either true or false.
+
+Contradictory statement: Johanna never has to work late.
+Justification: The implied statement was modified by replacing "usually" with "never." This change makes the statement contradictory because Johanna's response, "Often I find myself the last one at work," clearly indicates that she does have to work late.
+[end example]
+
+[begin example]
+Passage: Sunny has just traveled from a different city to meet Neil. Neil asks, "Are you employed?" Sunny responds, "I'm a veterinary technician."
+Implied statement: Sunny is employed.
+
+Explicit statement: Sunny is a veterinary technician.
+Justification: The implied statement was modified to directly reflect Sunny's response, "I'm a veterinary technician," which explicitly states her employment status.
+
+Neutral statement: Sunny is a recent graduate.
+Justification: The implied statement was modified by replacing "employed" with "recent graduate." This change makes the statement neutral because the passage does not provide any information about Sunny's graduation status, so it could be either true or false.
+
+Contradictory statement: Sunny is unemployed.
+Justification: The implied statement was modified by replacing "employed" with "unemployed." This change makes the statement contradictory because Sunny's response, "I'm a veterinary technician," clearly indicates that she is employed.
+[end example]
+
+[begin example]
+Passage: Lyle has just moved into a neighbourhood and meets his/her new neighbour Jeffrey. Lyle says, "Have you lived in this area long?" Jeffrey responds, "Several of my neighbors remember me in diapers."
+Implied statement: Jeffrey has lived in the area for a long time.
+
+Explicit statement: Several of Jeffrey's neighbors remember him in diapers.
+Justification: The implied statement was modified to directly reflect Jeffrey's response, "Several of my neighbors remember me in diapers," which explicitly indicates he has lived in the area for a long time.
+
+Neutral statement: Jeffrey has many friends in the area.
+Justification: The implied statement was modified by replacing "lived in the area for a long time" with "many friends in the area." This change makes the statement neutral because the passage does not provide any information about Jeffrey's friendships, so it could be either true or false.
+
+Contradictory statement: Jeffrey just moved to the area recently.
+Justification: The implied statement was modified by replacing "lived in the area for a long time" with "just moved to the area recently." This change makes the statement contradictory because Jeffrey's response, "Several of my neighbors remember me in diapers," clearly indicates that he has been in the area for a long time.
+[end example]
+
+[begin example]
+Passage: David wants to know about Hilary's music preferences. David says, "Do you listen to classical music?" Hilary responds, "I'm not a fan"
+Implied statement: Hilary does not listen to classical music.
+
+Explicit statement: Hilary is not a fan of classical music.
+Justification: The implied statement was modified to directly reflect Hilary's response, "I'm not a fan," which explicitly indicates she does not listen to classical music.
+
+Neutral statement: Hilary does not listen to jazz music.
+Justification: The implied statement was modified by replacing "classical music" with "jazz music." This change makes the statement neutral because the passage does not provide any information about Hilary's preference for jazz, so it could be either true or false.
+
+Contradictory statement: Hilary does listen classical music.
+Justification: The implied statement was modified by removing "not." This change makes the statement contradictory because Hilary's response, "I'm not a fan," clearly indicates she does not enjoy classical music.
+
+[end example]
+
+[your task]
+Using the above examples as a reference, your task is as follows:
+Given a passage and an implied statement, please generate an explicit statement, a neutral statement, and a contradictory statement, using the implied statement as a starting point.
+You may add, remove, and replace any necessary phrases. Similar to the above examples, ensure the generated statements are indeed explicit, neutral, and contradictory with respect to the passage.
+For an explicit statement, the justification must include what part of the passage contains the explicit statement.
+For a neutral statement, the justification must include why the neutral statement can be both true or false with respect to the passage.
+For a contradictory statement, the justification must include what part of the passage is directly contradicted by the contradictory statement.
+Be creative in this task, while still ensuring the statements are indeed explicit, neutral, and contradictory.
+Additionally, ensure all the statements have similar words and sentence structure. For instance, if the implied statement starts with "Cheryl has," then the neutral statement should also begin "Cheryl has" and the contradictory statement should begin "Cheryl has," not "Cheryl enjoys" or "Cheryl prefers."
+Your response should be six lines, beginning with "Explicit statement:", "Justification:", "Neutral statement:", "Justification:", "Contradictory statement:", and "Justification:".
+
+Passage: {}
+Implied statement: {}
+"""

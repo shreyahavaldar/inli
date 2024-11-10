@@ -1,0 +1,21 @@
+paraphrase_prompt = """You are an expert in English reading comprehension. Given a statement, your task is to generate a simple paraphrase it.
+A paraphrase is defined as a rewrite of a statement that preserves the meaning, but uses different words. Here are some examples:
+
+Statement: The barista thought it was inappropriate for the customers to discuss their intimate preferences in a public place.
+Paraphrase: The barista felt that the customers were being inappropriate by publicly discussing their intimate preferences.
+
+Statement: Chris is enjoying playing pokemon.
+Paraphrase: Chris is having a great time playing pokemon.
+
+Statement: Sarah was disappointed when Sabrina told her she wouldn't be able to be a bridesmaid.
+Paraphrase: After Sabrina declined Sarah's invitation to be a bridesmaid, Sarah felt disappointed.
+
+Statement: Several of Jeffrey's neighbors remember him in diapers.
+Paraphrase: Many of Jeffrey's neighbors remember when he was in diapers.
+
+Now, given a statement, paraphrase it while making sure the meaning of the statement remains the exact same.
+Make sure the paraphrased sentence is of similar length to the original sentence and is just as easy to understand.
+Your response should be one line, beginning with "Paraphrase: "
+
+Statement: {}
+"""
