@@ -32,7 +32,7 @@ In each of these files, one row represents a premise and four corresponding hypo
 ```
 @misc{havaldar2025entailedlinesincorporatingimplication,
       title={Entailed Between the Lines: Incorporating Implication into NLI}, 
-      author={Shreya Havaldar and Hamidreza Alvari and Alex Fabrikant and John Palowitch and Mohammad Javad Hosseini and Senaka Buthpitiya},
+      author={Shreya Havaldar and Hamidreza Alvari and John Palowitch and Mohammad Javad Hosseini and Senaka Buthpitiya and Alex Fabrikant},
       year={2025},
       eprint={2501.07719},
       archivePrefix={arXiv},
